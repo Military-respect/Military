@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الإدارة العسكرية</title>
+    <!-- Google Fonts: Cairo for a modern Arabic look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Landing Page Overlay -->
+    <div id="landingPage" class="landing-page">
+        <div class="landing-content">
+            <h1 class="landing-title">نظام الإدارة العسكرية</h1>
+            <div class="landing-cards">
+                <!-- Recruitment Card -->
+                <div id="landingRecruitBtn" class="landing-card" onclick="openRecruitmentFromLanding()">
+                    <i class="fa-solid fa-file-signature big-icon"></i>
+                    <h2>التقديم</h2>
+                    <p id="landingRecruitStatus">تحقق من الحالة...</p>
+                </div>
+
+                <!-- View Army Card -->
+                <div class="landing-card" onclick="enterSite()">
+                    <i class="fa-solid fa-users-viewfinder big-icon"></i>
+                    <h2>رؤية الجيش</h2>
+                    <p>عرض الهيكلة والأعضاء</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Wrapper (Hidden initially via script or staying behind z-index) -->
+    <div id="mainAppWrapper" class="hidden-initially">
+        <header class="main-header">
+            <div class="logo-area">
+                <h1><i class="fa-solid fa-shield-halved"></i> نظام الهيكلة العسكرية</h1>
+            </div>
+
+            <!-- New Info Nav -->
+            <div class="info-nav">
+                <button onclick="openInfoModal('rules')"><i class="fa-solid fa-scale-balanced"></i> القوانين</button>
+                <button onclick="openInfoModal('reporting')"><i class="fa-solid fa-bullhorn"></i> التبليغ</button>
+                <button onclick="openInfoModal('strategies')"><i class="fa-solid fa-chess"></i> استراتيجيات</button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="بحث عن شخص بالاسم..." onkeyup="searchPersonnel()">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            </div>
+
+            <div class="admin-controls">
+                <!-- Admin Toggle -->
+                <button id="adminBtn" onclick="toggleAdminPanel()"><i class="fa-solid fa-user-shield"></i> مشرف</button>
+
+                <!-- Login Panel -->
+                <div id="adminPanel" class="hidden">
+                    <input type="password" id="adminPin" placeholder="أدخل رمز المشرف">
+                    <button onclick="checkAdminPin()">دخول</button>
+                </div>
+
+                <!-- Admin Toolbar (Visible only when logged in) -->
+                <div id="adminTools" class="hidden" style="display:flex; gap:5px;">
+                    <button onclick="toggleRecruitmentStatus()" id="toggleRecruitBtn"
+                        style="background:var(--secondary-color);">
+                        <i class="fa-solid fa-lock"></i> فتح التقديم
+                    </button>
+                    <button onclick="openApplicationsModal()" style="background:var(--secondary-color);">
+                        <i class="fa-solid fa-list-ul"></i> التقديمات (<span id="appCount">0</span>)
+                    </button>
+                    <button id="logoutBtn" onclick="logoutAdmin()">تسجيل خروج <i
+                            class="fa-solid fa-right-from-bracket"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <div id="statusMessage" class="status-message hidden"></div>
+
+        <main class="container">
+            <!-- Ranks will be generated here -->
+            <div id="ranksContainer" class="ranks-grid"></div>
+
+            <!-- Add Rank Button (Admin Only) -->
+            <div id="addRankContainer" class="add-rank-container hidden">
+                <button onclick="openAddRankModal()" class="add-rank-btn"><i class="fa-solid fa-plus"></i> إضافة رتبة
+                    جديدة</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Recruitment Form (Public) -->
+    <div id="recruitmentModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('recruitmentModal')">&times;</span>
+            <h2><i class="fa-solid fa-file-contract"></i> تقديم طلب التحاق</h2>
+            <form id="recruitmentForm" onsubmit="submitApplication(event)">
+                <div class="recruitment-form-group">
+                    <label>اسمك برول (Roleplay Name):</label>
+                    <input type="text" id="appRealName" required>
+                </div>
+                <div class="recruitment-form-group">
+                    <label>العمر:</label>
+                    <input type="number" id="appAge" required>
+                </div>
+                <div class="recruitment-form-group">
+                    <label>آيدي الديسكورد (Discord ID):</label>
+                    <input type="text" id="appDiscord" required>
+                </div>
+                <div class="recruitment-form-group">
+                    <label>ما سبب تقديمك للجيش؟</label>
+                    <textarea id="appReason" required></textarea>
+                </div>
+                <div class="recruitment-form-group">
+                    <label>وش بتفيد الجيش؟</label>
+                    <textarea id="appBenefit" required></textarea>
+                </div>
+                <div class="recruitment-form-group">
+                    <label>ماهي مهام الجيش؟</label>
+                    <textarea id="appTasks" required></textarea>
+                </div>
+                <div class="recruitment-form-group">
+                    <label>وش الأشياء اللي تخليك مميز؟</label>
+                    <textarea id="appUnique" required></textarea>
+                </div>
+                <div class="recruitment-form-group">
+                    <label>تعريف عن نفسك:</label>
+                    <textarea id="appIntro" required></textarea>
+                </div>
+                <button type="submit" class="save-btn">إرسال الطلب</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Info Content (Rules, Strategies, etc) -->
+    <div id="infoModal" class="modal hidden">
+        <div class="modal-content" style="max-width:700px;">
+            <span class="close-modal" onclick="closeModal('infoModal')">&times;</span>
+            <h2 id="infoTitle">العنوان</h2>
+
+            <div id="infoViewContent" class="info-text-content">
+                <!-- Content goes here -->
+            </div>
+
+            <textarea id="infoEditContent" class="hidden"
+                style="width:100%; height:300px; background:#333; color:white; padding:10px; margin-top:10px; font-family:'Cairo'; border:1px solid #555; resize: vertical;"></textarea>
+
+            <div class="admin-only hidden" style="margin-top:15px; border-top:1px solid #555; padding-top:10px;">
+                <button id="editInfoBtn" onclick="toggleEditInfoMode()"
+                    style="background:var(--secondary-color);">تعديل</button>
+                <button id="saveInfoBtn" onclick="saveInfoContent()" class="hidden"
+                    style="background:var(--success);">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Applications View (Admin) -->
+    <div id="applicationsModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <span class="close-modal" onclick="closeModal('applicationsModal')">&times;</span>
+            <h2>طلبات الالتحاق المعلقة</h2>
+            <div id="applicationsList"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Person -->
+    <div id="personModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('personModal')">&times;</span>
+            <h2 id="modalTitle">إضافة شخص</h2>
+            <form id="personForm" onsubmit="handlePersonSubmit(event)">
+                <input type="hidden" id="personId">
+                <input type="hidden" id="personRankId">
+
+                <div class="form-group">
+                    <label>الرمز العسكري (Code):</label>
+                    <input type="text" id="personCode" placeholder="اختياري">
+                </div>
+
+                <div class="form-group">
+                    <label>الاسم الكامل:</label>
+                    <input type="text" id="personName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>الصورة الشخصية (رابط أو رفع):</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="personImageFile" accept="image/*" onchange="handleImageUpload(this)">
+                        <span class="or-divider">أو</span>
+                        <input type="url" id="personImageUrl" placeholder="رابط الصورة المباشر">
+                    </div>
+                    <div class="image-preview" id="imagePreview"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="save-btn">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Person Details (View) -->
+    <div id="detailsModal" class="modal hidden">
+        <div class="modal-content details-card">
+            <span class="close-modal" onclick="closeModal('detailsModal')">&times;</span>
+            <div class="person-header">
+                <img id="detailImage" src="" alt="Person Image" class="detail-avatar">
+                <div class="person-info-text">
+                    <h2 id="detailName"></h2>
+                    <p id="detailCode"
+                        style="color:var(--accent-color); font-family:monospace; font-size:1.1rem; margin-top:5px;"></p>
+                    <p id="detailRank" class="rank-badge"></p>
+
+                    <div id="statusContainer" class="status-select-container hidden">
+                        <label for="statusSelect" style="color:#aaa; font-size:0.9rem;">الحالة: </label>
+                        <select id="statusSelect" onchange="updatePersonStatus()">
+                            <option value="active">🟢 حاضر</option>
+                            <option value="inactive">🔴 غائب</option>
+                            <option value="vacation">🟡 إجازة</option>
+                            <option value="mission">🔵 مهمة</option>
+                        </select>
+                    </div>
+
+                    <div id="warnsContainer"
+                        style="margin-top: 10px; border: 1px solid #555; padding: 5px; border-radius: 5px; display: inline-block;">
+                        <span style="color: var(--danger); font-weight: bold;"><i
+                                class="fa-solid fa-triangle-exclamation"></i> الإنذارات: <span
+                                id="detailWarns">0</span></span>
+                        <div id="warnControls" class="admin-only hidden"
+                            style="display: inline-flex; gap: 5px; margin-right: 10px;">
+                            <button onclick="changeWarns(1)"
+                                style="padding: 2px 8px; font-size: 0.8rem; background: var(--danger);">+</button>
+                            <button onclick="changeWarns(-1)"
+                                style="padding: 2px 8px; font-size: 0.8rem; background: var(--success);">-</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h3><i class="fa-solid fa-list-check"></i> المهام</h3>
+                <ul id="detailTasks" class="task-list"></ul>
+                <div id="adminTaskControls" class="admin-only hidden">
+                    <div class="add-item-row">
+                        <input type="text" id="newTaskInput" placeholder="مهمة جديدة...">
+                        <button onclick="addTask()"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h3><i class="fa-solid fa-medal"></i> متطلبات الترقية</h3>
+                <ul id="detailPromotions" class="promotion-list"></ul>
+                <div id="adminPromoControls" class="admin-only hidden">
+                    <div class="add-item-row">
+                        <input type="text" id="newPromoInput" placeholder="متطلب ترقية جديد...">
+                        <button onclick="addPromo()"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-only hidden"
+                style="margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 10px;">
+                <button onclick="editCurrentPerson()" class="save-btn"
+                    style="width: auto; background-color: var(--secondary-color); color: white;">تعديل البيانات</button>
+                <button onclick="deleteCurrentPerson()" class="delete-btn" style="width: auto;">حذف الشخص</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Rank -->
+    <div id="rankModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('rankModal')">&times;</span>
+            <h2>إضافة رتبة جديدة</h2>
+            <form onsubmit="handleRankSubmit(event)">
+                <div class="form-group">
+                    <label>اسم الرتبة:</label>
+                    <input type="text" id="rankName" required>
+                </div>
+                <div class="form-group">
+                    <label>الترتيب (رقم):</label>
+                    <input type="number" id="rankOrder" required>
+                </div>
+                <button type="submit" class="save-btn">إضافة</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs (Compat version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
